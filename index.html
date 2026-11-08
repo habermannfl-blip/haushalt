@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151514" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Haushaltsduell">
+<title>Haushaltsduell</title>
+<style>
+:root{
+  --bg:#f6f5f2;--card:#ffffff;--ink:#1d1c1a;--muted:#77736b;--line:#e7e3dc;
+  --accent:#2f6f5e;--accent-ink:#ffffff;--soft:#eaf1ee;--danger:#b4442f;--warn:#9a6700;
+  --lock:#5b5a7a;--shadow:0 1px 2px rgba(0,0,0,.05),0 6px 20px rgba(0,0,0,.05);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#151514;--card:#1f1f1d;--ink:#efede8;--muted:#9b978e;--line:#2f2e2b;
+  --accent:#5fb39b;--accent-ink:#0f1a17;--soft:#1d2b27;--danger:#e0735c;--warn:#e0b04a;--lock:#a3a2d0;
+  --shadow:0 1px 2px rgba(0,0,0,.3)}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:20;background:var(--bg);
+  padding:calc(10px + env(safe-area-inset-top)) 0 10px;border-bottom:1px solid transparent}
+header.top .wrap{display:flex;align-items:center;gap:10px}
+.brand{font-weight:750;font-size:19px;letter-spacing:-.02em;flex:1;display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.dot.online{background:#3aa676}.dot.offline{background:var(--warn)}.dot.error{background:var(--danger)}.dot.demo{background:#7b74c9}
+.me-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:5px 12px 5px 6px;font-weight:600}
+.av{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font-size:16px;flex:none}
+.av.lg{width:44px;height:44px;font-size:24px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin:12px 0}
+.card h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:650}
+.muted{color:var(--muted)}.small{font-size:13px}.tiny{font-size:12px}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.btn{border:0;border-radius:12px;padding:11px 16px;background:var(--accent);color:var(--accent-ink);font-weight:650}
+.btn.sec{background:var(--soft);color:var(--ink)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger)}
+.btn.block{width:100%;display:block}
+.btn:disabled{opacity:.5}
+.field{display:block;margin:10px 0}
+.field span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:11px 12px;outline:none}
+.input:focus{border-color:var(--accent)}
+textarea.input{min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.search{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:10;background:var(--bg);padding:6px 0 4px}
+.sumbar{display:flex;gap:8px;margin:6px 0 2px}
+.sumbar .pill{flex:1;background:var(--card);box-shadow:var(--shadow);border-radius:14px;padding:10px 12px}
+.sumbar b{display:block;font-size:22px;letter-spacing:-.02em}
+.cat{margin:14px 0}
+.cat-h{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;
+  padding:6px 2px;font-weight:700;font-size:15px;color:var(--ink)}
+.cat-h .chev{transition:transform .2s;color:var(--muted)}
+.cat.closed .chev{transform:rotate(-90deg)}
+.cat.closed .tasks{display:none}
+.tasks{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.task{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;text-align:left;
+  padding:12px 14px;border-top:1px solid var(--line)}
+.task:first-child{border-top:0}
+.task:active{background:var(--soft)}
+.task.limited{opacity:.45}
+.task .tname{flex:1;min-width:0}
+.task .meta{font-size:12px;color:var(--muted)}
+.pts{min-width:34px;height:30px;border-radius:10px;display:inline-grid;place-items:center;font-weight:750;font-size:14px;padding:0 8px}
+.p1{background:#e3f1ea;color:#226046}.p2{background:#e5eef9;color:#2b5592}.p3{background:#fbf0d9;color:#8a5a00}
+.p4{background:#fbe5dc;color:#a2401f}.p5{background:#f1e2f5;color:#7a3590}
+@media (prefers-color-scheme: dark){.p1{background:#183427;color:#7fd4a9}.p2{background:#18263c;color:#8fb6ee}
+.p3{background:#352a12;color:#efc56b}.p4{background:#3a2018;color:#f19a7a}.p5{background:#2f1d36;color:#d7a0ea}}
+.plus{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:inline-grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs .wrap{display:flex}
+nav.tabs button{flex:1;border:0;background:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:11px;color:var(--muted);font-weight:600}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button.on{color:var(--accent)}
+.score{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.score:first-of-type{border-top:0}
+.score .big{font-size:28px;font-weight:800;letter-spacing:-.03em;text-align:right;min-width:64px}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:99px}
+.phase{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--soft);margin:12px 0}
+.phase.blind{background:color-mix(in srgb,var(--lock) 14%,var(--card))}
+.mprog{position:relative;height:6px;background:var(--line);border-radius:9px;margin:10px 0 4px}
+.mprog i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:9px}
+.mprog b{position:absolute;top:-4px;width:2px;height:14px;background:var(--lock)}
+.lock{color:var(--lock);font-weight:800}
+table.mini{width:100%;border-collapse:collapse;font-size:14px}
+table.mini td,table.mini th{padding:6px 4px;border-top:1px solid var(--line);text-align:right}
+table.mini th{font-size:12px;color:var(--muted);font-weight:650;border-top:0}
+table.mini td:first-child,table.mini th:first-child{text-align:left}
+.feed .item{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.feed .item:first-child{border-top:0}
+.feed .day{font-size:12px;color:var(--muted);font-weight:700;margin:12px 0 2px;text-transform:uppercase;letter-spacing:.05em}
+.x{border:0;background:none;color:var(--muted);font-size:18px;padding:4px 8px}
+.reveal{text-align:center;padding:22px 14px;background:linear-gradient(135deg,var(--soft),var(--card))}
+.reveal .trophy{font-size:54px;line-height:1;margin:6px 0}
+.reveal.pop .trophy{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-20deg);opacity:0}to{transform:scale(1);opacity:1}}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow:auto;animation:up .2s ease-out}
+.sheet h2{margin:0 0 6px;font-size:19px}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:10px;min-width:44px;padding:9px 0;font-weight:700}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:34px;height:34px;border-radius:50%;border:3px solid transparent}
+.swatches button.on{border-color:var(--ink)}
+.emojis button{font-size:22px;border:1px solid var(--line);background:var(--bg);border-radius:10px;width:44px;height:44px}
+.emojis button.on{border-color:var(--accent);background:var(--soft)}
+.list-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.list-row:first-child{border-top:0}
+.link{border:0;background:none;color:var(--accent);font-weight:650;padding:6px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;
+  background:var(--ink);color:var(--bg);border-radius:14px;padding:11px 14px;display:flex;gap:14px;align-items:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:calc(100% - 32px);animation:up .2s}
+.toast.err{background:var(--danger);color:#fff}
+.toast button{border:0;background:none;color:inherit;font-weight:800;text-decoration:underline}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+.banner{background:color-mix(in srgb,var(--warn) 15%,var(--card));border-radius:12px;padding:10px 12px;margin:10px 0;font-size:13px}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px}
+h1.hero{font-size:26px;letter-spacing:-.03em;margin:22px 0 4px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<script>
+"use strict";
+/* =====================================================================
+   Haushaltsduell – Punkte-Wettbewerb für den Haushalt
+   - Sync über Firebase Firestore (oder Demo-Modus nur lokal)
+   - Profile, editierbare Aufgaben & Punkte, Zwischenstand
+   - Blindphase am Monatsende: Endstand erst nach Monatswechsel sichtbar
+   Optional: Firebase-Konfiguration fest eintragen (sonst über Einrichtung):
+   ===================================================================== */
+const EMBEDDED_CONFIG = null;
+/* Beispiel:
+const EMBEDDED_CONFIG = {
+  household: "HIER-HAUSHALT-ID",
+  firebase: { apiKey:"...", authDomain:"...", projectId:"...", appId:"..." }
+};
+*/
+
+const VERSION = "1.0";
+const log = (...a) => console.log("[Haushaltsduell]", ...a);
+const warn = (...a) => console.warn("[Haushaltsduell]", ...a);
+
+/* ---------- Speicher-Helfer (localStorage mit Fallback) ---------- */
+const memStore = {};
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem("hd_" + k); return v == null ? d : JSON.parse(v); }
+              catch (e) { return k in memStore ? memStore[k] : d; } },
+  set(k, v) { memStore[k] = v; try { localStorage.setItem("hd_" + k, JSON.stringify(v)); } catch (e) { warn("localStorage nicht verfügbar", e); } },
+  del(k) { delete memStore[k]; try { localStorage.removeItem("hd_" + k); } catch (e) {} }
+};
+
+/* ---------- Allgemeine Helfer ---------- */
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+function randomId(n = 22) {
+  const abc = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let out = "";
+  try { const a = new Uint32Array(n); crypto.getRandomValues(a); a.forEach(x => out += abc[x % abc.length]); }
+  catch (e) { for (let i = 0; i < n; i++) out += abc[Math.floor(Math.random() * abc.length)]; }
+  return out;
+}
+const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const b64d = s => { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; return decodeURIComponent(escape(atob(s))); };
+const pad = n => String(n).padStart(2, "0");
+const monthKey = (d = new Date()) => d.getFullYear() + "-" + pad(d.getMonth() + 1);
+const dayKey = (d = new Date()) => monthKey(d) + "-" + pad(d.getDate());
+const prevMonthKey = (d = new Date()) => monthKey(new Date(d.getFullYear(), d.getMonth() - 1, 1));
+const ymOf = key => key.split("-").map(Number);
+const monthEnd = key => { const [y, m] = ymOf(key); return new Date(y, m, 1); };
+const monthStart = key => { const [y, m] = ymOf(key); return new Date(y, m - 1, 1); };
+const blindStart = (key, days) => { const [y, m] = ymOf(key); return new Date(y, m, 1 - days); };
+const monthName = key => monthStart(key).toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+const monthOnly = key => monthStart(key).toLocaleDateString("de-DE", { month: "long" });
+const fmtDate = d => d.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+const fmtTime = ts => new Date(ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+const isApk = /HaushaltApp/.test(navigator.userAgent);
+
+const PALETTE = ["#2f6f5e", "#c0582f", "#3d5fa8", "#8a4fa3", "#b08a1e", "#c03f6b", "#4a7d2a", "#5b6470"];
+const EMOJIS = ["🦦", "🐻", "🦊", "🐼", "🐸", "🐙", "🦄", "🐝", "🌵", "⭐", "🐧", "🐢"];
+
+/* ---------- Standard-Aufgaben ---------- */
+const T = (cat, name, pts, limit = 0) => ({ id: "t" + uid(), cat, name, pts, limit });
+const DEFAULT_TASKS = [
+  T("Küche", "Spülmaschine ausräumen", 1), T("Küche", "Spülmaschine einräumen", 2),
+  T("Küche", "Töpfe/Pfannen von Hand spülen (klein)", 1), T("Küche", "Töpfe/Pfannen von Hand spülen (groß)", 2),
+  T("Küche", "Tische abwischen", 1), T("Küche", "Entkalken (Wasserkocher/Kaffeemaschine)", 2),
+  T("Küche", "Küche gründlich putzen", 4), T("Küche", "Kühlschrank reinigen", 4), T("Küche", "Ofen reinigen", 5),
+  T("Bad", "Waschbecken putzen", 1), T("Bad", "Spiegel putzen", 1), T("Bad", "Handtücher wechseln", 1),
+  T("Bad", "Badewanne ohne Scheibe", 2), T("Bad", "Badewanne mit Scheiben", 3), T("Bad", "Klo putzen", 3),
+  T("Bad", "Duschabfluss reinigen", 3),
+  T("Wäsche & Bett", "Waschmaschine einräumen", 1), T("Wäsche & Bett", "Wäsche wegräumen", 1),
+  T("Wäsche & Bett", "Bett machen", 1, 1), T("Wäsche & Bett", "Wäsche aufhängen", 2),
+  T("Wäsche & Bett", "Wäsche abnehmen + zusammenlegen", 2), T("Wäsche & Bett", "Unterwäsche/Socken aufhängen", 3),
+  T("Wäsche & Bett", "Bett neu beziehen", 3),
+  T("Boden & Staub", "Staubsaugen (1 Raum)", 1), T("Boden & Staub", "Staubsaugen (ganze Wohnung)", 4),
+  T("Boden & Staub", "Ränder & Leisten saugen (Wohnung)", 3), T("Boden & Staub", "Boden wischen (1 Raum)", 1),
+  T("Boden & Staub", "Boden wischen (ganze Wohnung)", 4), T("Boden & Staub", "Staubwischen (1 Raum)", 1),
+  T("Boden & Staub", "Staubwischen (ganze Wohnung)", 4), T("Boden & Staub", "Robo hochstellen + starten", 2, 1),
+  T("Boden & Staub", "Robo leeren/reinigen", 1),
+  T("Fenster", "Fenster putzen (pro Fenster)", 1), T("Fenster", "Alle Fenster an einem Tag", 5),
+  T("Allgemein", "Aufräumen unter 15 min", 1), T("Allgemein", "Aufräumen ab 15 min", 2),
+  T("Allgemein", "Pflanzen gießen", 1), T("Allgemein", "Müll runterbringen beim Gehen", 1),
+  T("Allgemein", "Müll runterbringen extra", 2), T("Allgemein", "Altglas/Pfand wegbringen", 2),
+  T("Allgemein", "Mülleimer auswaschen", 2), T("Allgemein", "Dinge in den Keller räumen", 2)
+];
+const DEFAULT_SETTINGS = { blindDays: 7, tieThreshold: 10, prize: "", penalty: "" };
+const defaultMeta = () => ({ name: "Unser Haushalt", tasks: DEFAULT_TASKS, profiles: [], settings: { ...DEFAULT_SETTINGS }, months: [], created: Date.now() });
+
+/* =====================================================================
+   Datenspeicher: Demo (lokal) und Firebase (synchronisiert)
+   ===================================================================== */
+class DemoStore {
+  constructor() { this.kind = "demo"; }
+  async start(cb) {
+    this.cb = cb;
+    window.addEventListener("storage", e => { if (e.key && e.key.indexOf("hd_demo_") === 0) this.emit(); });
+    if (!LS.get("demo_meta", null)) LS.set("demo_meta", defaultMeta());
+    cb.status("demo"); this.emit();
+  }
+  emit() { this.cb.meta(LS.get("demo_meta", null)); this.cb.entries(LS.get("demo_entries", [])); }
+  async saveMeta(patch) { const m = Object.assign({}, LS.get("demo_meta", {}), patch); LS.set("demo_meta", m); this.emit(); }
+  addEntry(e) {
+    const id = "e" + uid(); const all = LS.get("demo_entries", []); all.push({ ...e, id }); LS.set("demo_entries", all);
+    const m = LS.get("demo_meta", {}); m.months = Array.from(new Set([...(m.months || []), e.month])); LS.set("demo_meta", m);
+    this.emit(); return id;
+  }
+  async deleteEntry(id) { LS.set("demo_entries", LS.get("demo_entries", []).filter(e => e.id !== id)); this.emit(); }
+  async loadMonth(m) { return LS.get("demo_entries", []).filter(e => e.month === m); }
+  refreshMonths() { this.emit(); }
+}
+
+const FB_VER = "10.14.1";
+const FB_SOURCES = [
+  n => `https://www.gstatic.com/firebasejs/${FB_VER}/${n}.js`,
+  n => `https://cdn.jsdelivr.net/npm/firebase@${FB_VER}/${n}.js`,
+  n => `https://unpkg.com/firebase@${FB_VER}/${n}.js`
+];
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = src; s.async = false;
+    const t = setTimeout(() => rej(new Error("Timeout " + src)), 15000);
+    s.onload = () => { clearTimeout(t); res(); };
+    s.onerror = () => { clearTimeout(t); rej(new Error("Ladefehler " + src)); };
+    document.head.appendChild(s);
+  });
+}
+async function loadFirebase() {
+  if (window.firebase && window.firebase.firestore) return;
+  for (const src of FB_SOURCES) {
+    try {
+      if (!(window.firebase && window.firebase.initializeApp)) await loadScript(src("firebase-app-compat"));
+      if (!(window.firebase && window.firebase.firestore)) await loadScript(src("firebase-firestore-compat"));
+      if (window.firebase && window.firebase.firestore) { log("Firebase geladen:", src("…")); return; }
+    } catch (e) { warn("Firebase-Quelle fehlgeschlagen:", e.message); }
+  }
+  throw new Error("Firebase-Bibliothek konnte nicht geladen werden (keine Internetverbindung?)");
+}
+
+class FirebaseStore {
+  constructor(cfg, hid) { this.kind = "firebase"; this.cfg = cfg; this.hid = hid; this.unsubE = null; this.month = null; }
+  async start(cb) {
+    this.cb = cb; cb.status("connecting");
+    await loadFirebase();
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(this.cfg);
+    this.db = firebase.firestore(app);
+    try { this.db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) { warn("settings", e.message); }
+    try { await this.db.enablePersistence({ synchronizeTabs: true }); log("Offline-Speicher aktiv"); }
+    catch (e) { warn("Offline-Speicher nicht verfügbar:", e.code || e.message); }
+    this.ref = this.db.collection("haushalte").doc(this.hid);
+    let created = false;
+    this.ref.onSnapshot({ includeMetadataChanges: true }, snap => {
+      cb.status(snap.metadata.fromCache ? "offline" : "online");
+      if (!snap.exists) {
+        if (!snap.metadata.fromCache && !created) {
+          created = true; log("Haushalt existiert noch nicht – lege an");
+          this.ref.set(defaultMeta(), { merge: true }).catch(err => cb.error(err));
+        }
+        return;
+      }
+      cb.meta(snap.data());
+    }, err => cb.error(err));
+    this.subscribeEntries();
+    setInterval(() => { if (monthKey() !== this.month) { log("Monatswechsel erkannt"); this.subscribeEntries(); } }, 30000);
+  }
+  subscribeEntries() {
+    if (this.unsubE) try { this.unsubE(); } catch (e) {}
+    this.month = monthKey();
+    const months = [monthKey(), prevMonthKey()];
+    this.unsubE = this.ref.collection("eintraege").where("month", "in", months)
+      .onSnapshot(snap => this.cb.entries(snap.docs.map(d => ({ id: d.id, ...d.data() }))), err => this.cb.error(err));
+  }
+  async saveMeta(patch) { await this.ref.set(patch, { merge: true }); }
+  addEntry(e) {
+    const r = this.ref.collection("eintraege").doc();
+    r.set(e).catch(err => this.cb.error(err));
+    this.ref.set({ months: firebase.firestore.FieldValue.arrayUnion(e.month) }, { merge: true }).catch(err => this.cb.error(err));
+    return r.id;
+  }
+  async deleteEntry(id) { await this.ref.collection("eintraege").doc(id).delete(); }
+  async loadMonth(m) {
+    const s = await this.ref.collection("eintraege").where("month", "==", m).get();
+    return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+  refreshMonths() {}
+}
+
+/* =====================================================================
+   App-Zustand
+   ===================================================================== */
+const S = {
+  conn: null, store: null, meta: null, entries: [], status: "…", error: null,
+  tab: LS.get("tab", "add"), me: LS.get("me", null), search: "", openCats: LS.get("openCats", {}),
+  hist: {}, ready: false
+};
+const settings = () => Object.assign({}, DEFAULT_SETTINGS, (S.meta && S.meta.settings) || {});
+const profiles = () => (S.meta && S.meta.profiles) || [];
+const tasks = () => (S.meta && S.meta.tasks) || [];
+const prof = id => profiles().find(p => p.id === id) || { id, name: "Unbekannt", emoji: "❔", color: "#888" };
+const avatar = (p, cls = "") => `<span class="av ${cls}" style="background:${esc(p.color)}22;border:2px solid ${esc(p.color)}">${esc(p.emoji || "🙂")}</span>`;
+const ptsCls = p => "p" + Math.max(1, Math.min(5, Math.round(p)));
+
+/* ---------- Verbindungskonfiguration ---------- */
+function readJoinFromHash() {
+  const m = (location.hash || "").match(/join=([A-Za-z0-9_-]+)/);
+  if (!m) return null;
+  try { const o = JSON.parse(b64d(m[1])); if (o && o.c && o.h) return { mode: "firebase", firebase: o.c, hid: o.h }; }
+  catch (e) { warn("Einladungslink ungültig", e); }
+  return null;
+}
+function getConn() {
+  const j = readJoinFromHash();
+  if (j) { LS.set("conn", j); log("Verbindung aus Einladungslink übernommen"); return j; }
+  if (EMBEDDED_CONFIG && EMBEDDED_CONFIG.firebase && EMBEDDED_CONFIG.household)
+    return { mode: "firebase", firebase: EMBEDDED_CONFIG.firebase, hid: EMBEDDED_CONFIG.household };
+  return LS.get("conn", null);
+}
+function inviteLink() {
+  const c = S.conn; if (!c || c.mode !== "firebase") return null;
+  const base = location.protocol.indexOf("http") === 0 ? location.href.split("#")[0] : (LS.get("webUrl", "") || "");
+  return base ? base + "#join=" + b64e(JSON.stringify({ c: c.firebase, h: c.hid })) : null;
+}
+function parseFirebaseConfig(txt) {
+  txt = (txt || "").trim(); if (!txt) return null;
+  try { const o = JSON.parse(txt); if (o && o.apiKey && o.projectId) return o; } catch (e) {}
+  const keys = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId", "measurementId", "databaseURL"];
+  const o = {};
+  keys.forEach(k => { const m = txt.match(new RegExp(k + "[\"']?\\s*:\\s*[\"']([^\"']+)[\"']")); if (m) o[k] = m[1]; });
+  return o.apiKey && o.projectId ? o : null;
+}
+
+/* =====================================================================
+   Berechnungen
+   ===================================================================== */
+function monthState(key = monthKey()) {
+  const st = settings();
+  const days = Math.max(1, Math.min(14, +st.blindDays || 7));
+  const bs = blindStart(key, days), end = monthEnd(key), start = monthStart(key);
+  const now = Date.now();
+  return { key, bs, end, start, days, blind: now >= bs.getTime() && now < end.getTime(),
+           progress: Math.min(1, (now - start) / (end - start)), bsPos: (bs - start) / (end - start) };
+}
+function sumBy(entries) {
+  const t = {}; profiles().forEach(p => t[p.id] = { pts: 0, n: 0 });
+  entries.forEach(e => { if (!t[e.pid]) t[e.pid] = { pts: 0, n: 0 }; t[e.pid].pts += +e.pts || 0; t[e.pid].n++; });
+  return t;
+}
+function resultOf(entries) {
+  const t = sumBy(entries);
+  const ids = Object.keys(t).filter(id => profiles().some(p => p.id === id) || t[id].n > 0);
+  const list = ids.map(id => ({ id, ...t[id] })).sort((a, b) => b.pts - a.pts);
+  const thr = +settings().tieThreshold || 0;
+  let tie = false;
+  if (list.length >= 2) {
+    const top = list[0].pts, sec = list[1].pts;
+    tie = top === 0 || top === sec || ((top - sec) / top) * 100 < thr;
+  }
+  return { list, tie, winner: list.length && !tie ? list[0] : null, loser: list.length >= 2 && !tie ? list[list.length - 1] : null };
+}
+const curEntries = () => S.entries.filter(e => e.month === monthKey());
+const todayCount = tid => S.entries.filter(e => e.pid === S.me && e.tid === tid && e.day === dayKey()).length;
+function categories(list = tasks()) { const seen = []; list.forEach(t => { if (seen.indexOf(t.cat) < 0) seen.push(t.cat); }); return seen; }
+
+/* =====================================================================
+   UI-Grundgerüst
+   ===================================================================== */
+const ICON = {
+  add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  score: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>',
+  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>',
+  set: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
+};
+const statusText = { online: "Synchronisiert", offline: "Offline – wird später synchronisiert", connecting: "Verbinde…", demo: "Demo-Modus (nur dieses Gerät)", error: "Verbindungsfehler", "…": "…" };
+
+function render() {
+  const app = document.getElementById("app");
+  if (!S.conn) { app.innerHTML = renderSetup(); return; }
+  if (!S.meta) {
+    app.innerHTML = `<div class="wrap"><div class="empty" style="padding-top:30vh">
+      ${S.error ? `<b>Verbindung fehlgeschlagen</b><p class="small">${esc(S.error)}</p>
+      <button class="btn sec" data-a="retry">Erneut versuchen</button>
+      <p><button class="link" data-a="disconnect">Verbindung zurücksetzen</button></p>` : "Lade Daten…"}</div></div>`;
+    return;
+  }
+  const me = S.me && profiles().some(p => p.id === S.me) ? prof(S.me) : null;
+  let body = "";
+  if (S.tab === "add") body = renderAdd(); else if (S.tab === "score") body = renderScore();
+  else if (S.tab === "hist") body = renderHist(); else body = renderSettings();
+  app.innerHTML = `
+  <header class="top"><div class="wrap">
+    <div class="brand"><span class="dot ${esc(S.status)}" title="${esc(statusText[S.status] || "")}"></span>Haushaltsduell</div>
+    ${me ? `<button class="me-chip" data-a="pickMe">${avatar(me)}${esc(me.name)}</button>`
+         : (profiles().length ? `<button class="btn sec" data-a="pickMe">Wer bist du?</button>` : "")}
+  </div></header>
+  <main class="wrap">${S.error ? `<div class="banner">⚠️ ${esc(S.error)}</div>` : ""}${body}</main>
+  <nav class="tabs"><div class="wrap">
+    ${[["add", "Eintragen"], ["score", "Stand"], ["hist", "Verlauf"], ["set", "Einstellungen"]].map(([k, l]) =>
+      `<button class="${S.tab === k ? "on" : ""}" data-a="tab" data-v="${k}">${ICON[k]}${l}</button>`).join("")}
+  </div></nav>`;
+}
+
+/* ---------- Einrichtung ---------- */
+function renderSetup() {
+  return `<div class="wrap">
+  <h1 class="hero">Haushaltsduell</h1>
+  <p class="muted">Punkte für Hausarbeit sammeln, Zwischenstand verfolgen – der Endstand wird erst nach Monatsende aufgedeckt.</p>
+  <div class="card"><h3>Mit Einladungslink beitreten</h3>
+    <p class="small muted">Hat dein Partner schon eingerichtet? Link hier einfügen.</p>
+    <input class="input" id="joinLink" placeholder="https://…#join=…">
+    <button class="btn block" style="margin-top:10px" data-a="joinLink">Beitreten</button></div>
+  <div class="card"><h3>Neu einrichten (Firebase)</h3>
+    <p class="small muted">Firebase-Konfiguration aus der Firebase-Konsole einfügen (das <span class="code" style="padding:1px 4px">firebaseConfig</span>-Objekt).</p>
+    <textarea class="input" id="fbcfg" placeholder='const firebaseConfig = { apiKey: "...", projectId: "...", ... };'></textarea>
+    <label class="field"><span>Haushalt-ID (leer lassen = neuen Haushalt anlegen)</span>
+      <input class="input" id="hid" placeholder="automatisch"></label>
+    <button class="btn block" data-a="setupFb">Verbinden</button></div>
+  <div class="card"><h3>Erst mal ausprobieren</h3>
+    <p class="small muted">Demo-Modus speichert nur auf diesem Gerät, ohne Synchronisation.</p>
+    <button class="btn sec block" data-a="setupDemo">Demo starten</button></div>
+  ${isApk ? `<p class="small"><a class="link" href="haushalt://setup">App-Adresse ändern</a></p>` : ""}
+  <p class="tiny muted">Version ${VERSION}</p></div>`;
+}
+
+/* ---------- Tab: Eintragen ---------- */
+function renderAdd() {
+  if (!profiles().length) return `<div class="card" style="margin-top:20px"><h3>Los geht's</h3>
+    <p>Legt zuerst eure Profile an.</p><button class="btn block" data-a="editProfile">Profil anlegen</button></div>`;
+  if (!S.me || !profiles().some(p => p.id === S.me)) return `<div class="card" style="margin-top:20px"><h3>Wer bist du?</h3>${pickMeList()}
+    <button class="link" data-a="editProfile">+ Neues Profil</button></div>`;
+  const mine = curEntries().filter(e => e.pid === S.me);
+  const today = mine.filter(e => e.day === dayKey()).reduce((a, e) => a + (+e.pts || 0), 0);
+  const month = mine.reduce((a, e) => a + (+e.pts || 0), 0);
+  const recent = mine.slice().sort((a, b) => b.ts - a.ts).slice(0, 5);
+  return `<div class="sumbar">
+    <div class="pill"><span class="small muted">Heute</span><b>+${today}</b></div>
+    <div class="pill"><span class="small muted">Deine Punkte im ${esc(monthOnly(monthKey()))}</span><b>${month}</b></div></div>
+  <div class="search"><input class="input" id="search" placeholder="Aufgabe suchen…" value="${esc(S.search)}" autocomplete="off"></div>
+  <div id="tasklist">${renderTaskList()}</div>
+  ${recent.length ? `<div class="card"><h3>Deine letzten Einträge</h3><div class="feed">${recent.map(e => `
+    <div class="item"><span class="pts ${ptsCls(e.pts)}">${e.pts}</span><div class="grow">${esc(e.name)}
+    <div class="tiny muted">${fmtDate(new Date(e.ts))}, ${fmtTime(e.ts)}</div></div>
+    <button class="x" data-a="delEntry" data-v="${esc(e.id)}" aria-label="Löschen">✕</button></div>`).join("")}</div></div>` : ""}`;
+}
+function renderTaskList() {
+  const q = S.search.trim().toLowerCase();
+  const list = tasks().filter(t => !q || t.name.toLowerCase().indexOf(q) >= 0 || (t.cat || "").toLowerCase().indexOf(q) >= 0);
+  if (!list.length) return `<div class="empty">Keine Aufgabe gefunden.<br><button class="link" data-a="editTask">+ Aufgabe anlegen</button></div>`;
+  return categories(list).map(cat => {
+    const closed = !q && S.openCats[cat] === false;
+    const items = list.filter(t => t.cat === cat);
+    return `<div class="cat ${closed ? "closed" : ""}">
+      <button class="cat-h" data-a="toggleCat" data-v="${esc(cat)}"><span>${esc(cat)} <span class="muted small">${items.length}</span></span><span class="chev">▾</span></button>
+      <div class="tasks">${items.map(t => {
+        const c = todayCount(t.id), lim = +t.limit || 0, full = lim && c >= lim;
+        return `<button class="task ${full ? "limited" : ""}" data-a="addEntry" data-v="${esc(t.id)}">
+          <span class="pts ${ptsCls(t.pts)}">${esc(t.pts)}</span>
+          <span class="tname">${esc(t.name)}${c || lim ? `<div class="meta">${c ? `heute ${c}×` : ""}${c && lim ? " · " : ""}${lim ? `max. ${lim}×/Tag` : ""}</div>` : ""}</span>
+          <span class="plus">+</span></button>`;
+      }).join("")}</div></div>`;
+  }).join("");
+}
+
+/* ---------- Tab: Stand ---------- */
+function renderScore() {
+  if (!profiles().length) return `<div class="empty">Noch keine Profile.</div>`;
+  const ms = monthState();
+  const all = curEntries();
+  const pre = all.filter(e => e.ts < ms.bs.getTime());
+  const shown = ms.blind ? pre : all;
+  const t = sumBy(shown);
+  const max = Math.max(1, ...Object.values(t).map(x => x.pts));
+  const endTxt = ms.end.toLocaleDateString("de-DE", { day: "numeric", month: "long" });
+  const bsTxt = ms.bs.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+  const phase = ms.blind
+    ? `<div class="phase blind"><span style="font-size:22px">🔒</span><div><b>Blindphase</b><div class="small">Der Stand ist seit ${esc(bsTxt)} eingefroren. Wer wie viel nachlegt, bleibt geheim – das Endergebnis gibt's am ${esc(endTxt)}.</div></div></div>`
+    : `<div class="phase"><span style="font-size:22px">📊</span><div><b>Zwischenstand live</b><div class="small">Ab ${esc(bsTxt)} wird der Stand eingefroren (Blindphase, ${ms.days} Tage).</div></div></div>`;
+  const prog = `<div class="mprog"><i style="width:${(ms.progress * 100).toFixed(1)}%"></i><b style="left:${(ms.bsPos * 100).toFixed(1)}%"></b></div>
+    <div class="row tiny muted"><span class="grow">1. ${esc(monthOnly(ms.key))}</span><span>🔒 ab ${ms.bs.getDate()}.</span><span class="grow" style="text-align:right">Ende</span></div>`;
+  const ranked = profiles().slice().sort((a, b) => (t[b.id] ? t[b.id].pts : 0) - (t[a.id] ? t[a.id].pts : 0));
+  const scores = ranked.map(p => {
+    const v = t[p.id] || { pts: 0, n: 0 };
+    let extra = "";
+    if (ms.blind) {
+      const since = all.filter(e => e.ts >= ms.bs.getTime() && e.pid === p.id);
+      extra = p.id === S.me
+        ? `<div class="tiny muted">+${since.reduce((a, e) => a + (+e.pts || 0), 0)} seit der Sperre (nur für dich sichtbar)</div>`
+        : `<div class="tiny"><span class="lock">+ ?</span> <span class="muted">seit der Sperre</span></div>`;
+    }
+    return `<div class="score">${avatar(p, "lg")}<div class="grow"><b>${esc(p.name)}</b>
+      <div class="tiny muted">${v.n} Aufgaben${ms.blind ? " bis zur Sperre" : ""}</div>${extra}
+      <div class="bar"><i style="width:${(v.pts / max * 100).toFixed(1)}%;background:${esc(p.color)}"></i></div></div>
+      <div class="big">${v.pts}</div></div>`;
+  }).join("");
+  // Kategorien
+  const cats = categories(tasks()).concat(Array.from(new Set(shown.map(e => e.cat))).filter(c => categories(tasks()).indexOf(c) < 0));
+  const rows = cats.map(c => {
+    const vals = profiles().map(p => shown.filter(e => e.pid === p.id && e.cat === c).reduce((a, e) => a + (+e.pts || 0), 0));
+    return vals.some(v => v) ? `<tr><td>${esc(c)}</td>${vals.map(v => `<td>${v || "–"}</td>`).join("")}</tr>` : "";
+  }).join("");
+  // Aktivität
+  const feedEntries = all.filter(e => !ms.blind || e.ts < ms.bs.getTime() || e.pid === S.me).sort((a, b) => b.ts - a.ts).slice(0, 40);
+  let lastDay = "", feed = "";
+  feedEntries.forEach(e => {
+    if (e.day !== lastDay) { lastDay = e.day; feed += `<div class="day">${esc(fmtDate(new Date(e.ts)))}</div>`; }
+    const p = prof(e.pid);
+    feed += `<div class="item">${avatar(p)}<div class="grow">${esc(e.name)}<div class="tiny muted">${esc(p.name)} · ${fmtTime(e.ts)}</div></div><span class="pts ${ptsCls(e.pts)}">+${esc(e.pts)}</span></div>`;
+  });
+  return `${renderRevealCard()}${phase}
+  <div class="card"><h3>${esc(monthName(ms.key))}</h3>${prog}<div style="margin-top:8px">${scores}</div></div>
+  ${rows ? `<div class="card"><h3>Nach Bereich${ms.blind ? " (bis zur Sperre)" : ""}</h3><table class="mini"><tr><th></th>${profiles().map(p => `<th>${esc(p.emoji)} ${esc(p.name)}</th>`).join("")}</tr>${rows}</table></div>` : ""}
+  <div class="card"><h3>Aktivität</h3>${feed ? `<div class="feed">${feed}</div>` : `<div class="empty">Noch nichts eingetragen.</div>`}
+  ${ms.blind ? `<p class="tiny muted">Einträge der anderen aus der Blindphase werden erst nach Monatsende angezeigt.</p>` : ""}</div>`;
+}
+function renderRevealCard() {
+  const pm = prevMonthKey();
+  const ents = S.entries.filter(e => e.month === pm);
+  if (!ents.length) return "";
+  const seen = LS.get("seen_" + pm, false);
+  if (!seen) return `<div class="card reveal"><div class="trophy">🎁</div><h2 style="margin:6px 0">Das Ergebnis für ${esc(monthOnly(pm))} ist da!</h2>
+    <p class="muted small">Bereit?</p><button class="btn" data-a="reveal" data-v="${pm}">Ergebnis aufdecken</button></div>`;
+  return resultCard(pm, ents, S.justRevealed === pm);
+}
+function resultCard(key, ents, pop = false) {
+  const r = resultOf(ents); const st = settings();
+  const max = Math.max(1, ...r.list.map(x => x.pts));
+  let head;
+  if (r.tie) head = `<div class="trophy">🤝</div><h2 style="margin:6px 0">Unentschieden!</h2>
+    <p class="small muted">Abstand unter ${esc(st.tieThreshold)} % – gemeinsame Belohnung${st.prize ? `: <b>${esc(st.prize)}</b>` : ""}.</p>`;
+  else if (r.winner) {
+    const w = prof(r.winner.id), l = r.loser ? prof(r.loser.id) : null;
+    head = `<div class="trophy">🏆</div><h2 style="margin:6px 0">${esc(w.emoji)} ${esc(w.name)} gewinnt ${esc(monthOnly(key))}!</h2>
+    ${st.prize ? `<p class="small">Preis: <b>${esc(st.prize)}</b></p>` : ""}
+    ${st.penalty && l ? `<p class="small">Strafe für ${esc(l.name)}: <b>${esc(st.penalty)}</b></p>` : ""}`;
+  } else head = `<h2>${esc(monthName(key))}</h2>`;
+  return `<div class="card reveal ${pop ? "pop" : ""}">${head}
+    <div style="text-align:left;margin-top:12px">${r.list.map(x => { const p = prof(x.id); return `<div class="score">${avatar(p)}<div class="grow"><b>${esc(p.name)}</b>
+      <div class="bar"><i style="width:${(x.pts / max * 100).toFixed(1)}%;background:${esc(p.color)}"></i></div></div><div class="big" style="font-size:22px">${x.pts}</div></div>`; }).join("")}</div></div>`;
+}
+
+/* ---------- Tab: Verlauf ---------- */
+function renderHist() {
+  const cur = monthKey();
+  const months = Array.from(new Set([...((S.meta && S.meta.months) || []), ...S.entries.map(e => e.month)]))
+    .filter(m => m && m < cur).sort().reverse();
+  if (!months.length) return `<div class="empty" style="padding-top:60px">🏁<br>Noch keine abgeschlossenen Monate.<br><span class="small">Ergebnisse erscheinen hier nach dem Monatswechsel.</span></div>`;
+  return `<div class="card"><h3>Abgeschlossene Monate</h3>${months.map(m => {
+    const data = S.hist[m] || (m === prevMonthKey() ? S.entries.filter(e => e.month === m) : null);
+    let sub = "Tippen zum Laden";
+    if (data) { const r = resultOf(data); sub = r.tie ? "🤝 Unentschieden" : r.winner ? `🏆 ${esc(prof(r.winner.id).name)} · ${r.list.map(x => x.pts).join(" : ")}` : "keine Einträge"; }
+    return `<button class="list-row" style="width:100%;border-left:0;border-right:0;border-bottom:0;background:none;text-align:left" data-a="openMonth" data-v="${m}">
+      <div class="grow"><b>${esc(monthName(m))}</b><div class="small muted">${sub}</div></div><span class="muted">›</span></button>`;
+  }).join("")}</div>`;
+}
+async function openMonth(m) {
+  try {
+    if (!S.hist[m]) S.hist[m] = m === prevMonthKey() ? S.entries.filter(e => e.month === m) : await S.store.loadMonth(m);
+    if (m === prevMonthKey()) LS.set("seen_" + m, true);
+    const ents = S.hist[m];
+    const byTask = {};
+    ents.forEach(e => { const k = e.name; byTask[k] = byTask[k] || {}; byTask[k][e.pid] = (byTask[k][e.pid] || 0) + 1; });
+    const rows = Object.keys(byTask).sort().map(k => `<tr><td>${esc(k)}</td>${profiles().map(p => `<td>${byTask[k][p.id] ? byTask[k][p.id] + "×" : "–"}</td>`).join("")}</tr>`).join("");
+    openSheet(`<h2>${esc(monthName(m))}</h2>${resultCard(m, ents)}
+      ${rows ? `<div class="card"><h3>Wer hat was gemacht</h3><table class="mini"><tr><th></th>${profiles().map(p => `<th>${esc(p.emoji)}</th>`).join("")}</tr>${rows}</table></div>` : ""}
+      <button class="btn sec block" data-a="closeSheet">Schließen</button>`);
+    render();
+  } catch (e) { warn(e); toast("Monat konnte nicht geladen werden: " + e.message, { error: true }); }
+}
+
+/* ---------- Tab: Einstellungen ---------- */
+function renderSettings() {
+  const st = settings();
+  const c = S.conn;
+  const link = inviteLink();
+  const byCat = categories(tasks()).map(cat => `<div class="small muted" style="margin:12px 0 2px;font-weight:700">${esc(cat)}</div>` +
+    tasks().filter(t => t.cat === cat).map(t => `<div class="list-row"><span class="pts ${ptsCls(t.pts)}">${esc(t.pts)}</span>
+      <div class="grow">${esc(t.name)}${+t.limit ? `<div class="tiny muted">max. ${esc(t.limit)}×/Tag</div>` : ""}</div>
+      <button class="link" data-a="editTask" data-v="${esc(t.id)}">Bearbeiten</button></div>`).join("")).join("");
+  return `
+  <div class="card"><h3>Profile</h3>
+    ${profiles().map(p => `<div class="list-row">${avatar(p)}<div class="grow"><b>${esc(p.name)}</b>${p.id === S.me ? ` <span class="tiny muted">(dieses Gerät)</span>` : ""}</div>
+      <button class="link" data-a="editProfile" data-v="${esc(p.id)}">Bearbeiten</button></div>`).join("") || `<p class="muted small">Noch keine Profile.</p>`}
+    <div class="row" style="margin-top:8px"><button class="btn sec" data-a="editProfile">+ Profil</button>
+    ${profiles().length ? `<button class="btn ghost" data-a="pickMe">Gerät zuordnen</button>` : ""}</div></div>
+
+  <div class="card"><h3>Wettbewerb</h3>
+    <label class="field"><span>Blindphase am Monatsende (Tage) – Stand wird eingefroren, Endergebnis erst nach Monatsende</span>
+      <select class="input" data-in="blindDays">${Array.from({ length: 14 }, (_, i) => i + 1).map(n => `<option ${+st.blindDays === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+    <label class="field"><span>Unentschieden, wenn Abstand kleiner als (%)</span>
+      <select class="input" data-in="tieThreshold">${[0, 5, 10, 15, 20].map(n => `<option ${+st.tieThreshold === n ? "selected" : ""} value="${n}">${n === 0 ? "aus" : n + " %"}</option>`).join("")}</select></label>
+    <label class="field"><span>Preis für den Gewinner</span><input class="input" data-in="prize" value="${esc(st.prize)}" placeholder="z. B. Frühstück ans Bett"></label>
+    <label class="field"><span>Strafe für den Verlierer</span><input class="input" data-in="penalty" value="${esc(st.penalty)}" placeholder="z. B. eine Woche Klo putzen"></label></div>
+
+  <div class="card"><h3>Aufgaben & Punkte</h3>
+    <button class="btn sec" data-a="editTask">+ Aufgabe</button>
+    ${byCat}
+    <p class="tiny muted" style="margin-top:12px">Änderungen an Punkten gelten für neue Einträge. Bereits eingetragene Punkte bleiben unverändert.</p>
+    <button class="link" data-a="resetTasks">Standardliste wiederherstellen</button></div>
+
+  <div class="card"><h3>Verbindung</h3>
+    <div class="row small"><span class="dot ${esc(S.status)}"></span><span>${esc(statusText[S.status] || S.status)}</span></div>
+    ${c && c.mode === "firebase" ? `
+      <p class="small muted" style="margin-bottom:4px">Haushalt-ID</p><div class="code">${esc(c.hid)}</div>
+      <p class="small muted" style="margin:12px 0 4px">Einladungslink (für das zweite Gerät – öffnen und als Lesezeichen speichern)</p>
+      ${link ? `<div class="code" id="invite">${esc(link)}</div>
+        <div class="row" style="margin-top:8px"><button class="btn" data-a="shareInvite">Link teilen</button><button class="btn sec" data-a="copyInvite">Kopieren</button></div>`
+        : `<p class="small">Öffne die App einmal über die Web-Adresse, um den Link zu erzeugen.</p>`}` : `<p class="small muted">Im Demo-Modus wird nichts synchronisiert.</p>`}
+    <div class="row" style="margin-top:12px;flex-wrap:wrap">
+      <button class="btn danger" data-a="disconnect">Verbindung trennen</button>
+      ${isApk ? `<a class="btn ghost" href="haushalt://setup" style="text-decoration:none">App-Adresse ändern</a>` : ""}</div></div>
+  <p class="tiny muted" style="text-align:center">Haushaltsduell ${VERSION}</p>`;
+}
+
+/* ---------- Sheets, Dialoge, Toasts ---------- */
+function openSheet(html) {
+  document.getElementById("layer").innerHTML = `<div class="sheet-bg" data-a="bgClose"><div class="sheet" role="dialog">${html}</div></div>`;
+}
+function closeSheet() { document.getElementById("layer").innerHTML = ""; }
+function confirmBox(msg, okText = "OK", danger = false) {
+  return new Promise(res => {
+    window.__confirmRes = v => { closeSheet(); res(v); };
+    openSheet(`<p style="font-size:16px;margin:4px 0 16px">${esc(msg)}</p>
+      <div class="row"><button class="btn sec grow" onclick="__confirmRes(false)">Abbrechen</button>
+      <button class="btn grow ${danger ? "danger" : ""}" onclick="__confirmRes(true)">${esc(okText)}</button></div>`);
+  });
+}
+let toastTimer = null;
+function toast(msg, opt = {}) {
+  let el = document.getElementById("toast"); if (el) el.remove();
+  el = document.createElement("div"); el.id = "toast"; el.className = "toast" + (opt.error ? " err" : "");
+  el.innerHTML = `<span>${esc(msg)}</span>${opt.undo ? `<button>Rückgängig</button>` : ""}`;
+  if (opt.undo) el.querySelector("button").onclick = () => { el.remove(); Promise.resolve(opt.undo()).then(() => toast("Rückgängig gemacht")).catch(e => toast("Fehler: " + e.message, { error: true })); };
+  document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), opt.undo ? 5000 : 2600);
+}
+function haptic() { try { navigator.vibrate && navigator.vibrate(12); } catch (e) {} }
+function pickMeList() {
+  return profiles().map(p => `<button class="list-row" style="width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left" data-a="setMe" data-v="${esc(p.id)}">
+    ${avatar(p)}<b class="grow">${esc(p.name)}</b>${p.id === S.me ? "✓" : ""}</button>`).join("");
+}
+
+/* ---------- Bearbeiten: Profil ---------- */
+function editProfile(id) {
+  const p = id ? profiles().find(x => x.id === id) : { id: null, name: "", emoji: EMOJIS[profiles().length % EMOJIS.length], color: PALETTE[profiles().length % PALETTE.length] };
+  window.__pe = { ...p };
+  const draw = () => openSheet(`<h2>${id ? "Profil bearbeiten" : "Neues Profil"}</h2>
+    <label class="field"><span>Name</span><input class="input" id="pname" value="${esc(__pe.name)}" maxlength="24"></label>
+    <div class="field"><span>Symbol</span><div class="seg emojis">${EMOJIS.map(e => `<button class="${__pe.emoji === e ? "on" : ""}" data-a="peEmoji" data-v="${e}">${e}</button>`).join("")}</div></div>
+    <div class="field"><span>Farbe</span><div class="swatches">${PALETTE.map(c => `<button class="${__pe.color === c ? "on" : ""}" style="background:${c}" data-a="peColor" data-v="${c}"></button>`).join("")}</div></div>
+    <button class="btn block" data-a="saveProfile" style="margin-top:14px">Speichern</button>
+    ${id ? `<button class="btn danger block" data-a="delProfile" style="margin-top:8px">Profil löschen</button>` : ""}`);
+  window.__peDraw = () => { const n = document.getElementById("pname"); if (n) __pe.name = n.value; draw(); };
+  draw();
+}
+async function saveProfile() {
+  const n = (document.getElementById("pname").value || "").trim();
+  if (!n) { toast("Bitte einen Namen eingeben", { error: true }); return; }
+  const p = { ...__pe, name: n };
+  let list = profiles().slice();
+  if (p.id) list = list.map(x => x.id === p.id ? p : x); else { p.id = "p" + uid(); list.push(p); }
+  try { await S.store.saveMeta({ profiles: list }); if (!S.me) { S.me = p.id; LS.set("me", p.id); } closeSheet(); toast("Profil gespeichert"); }
+  catch (e) { warn(e); toast("Speichern fehlgeschlagen: " + e.message, { error: true }); }
+}
+async function delProfile() {
+  const p = __pe;
+  if (!(await confirmBox(`Profil „${p.name}“ löschen? Bereits eingetragene Punkte bleiben in der Datenbank, werden aber nicht mehr zugeordnet.`, "Löschen", true))) return;
+  try { await S.store.saveMeta({ profiles: profiles().filter(x => x.id !== p.id) }); if (S.me === p.id) { S.me = null; LS.del("me"); } toast("Profil gelöscht"); }
+  catch (e) { toast("Fehler: " + e.message, { error: true }); }
+}
+
+/* ---------- Bearbeiten: Aufgabe ---------- */
+function editTask(id) {
+  const t = id ? tasks().find(x => x.id === id) : { id: null, name: S.search || "", cat: categories()[0] || "Allgemein", pts: 1, limit: 0 };
+  window.__te = { ...t };
+  const draw = () => openSheet(`<h2>${id ? "Aufgabe bearbeiten" : "Neue Aufgabe"}</h2>
+    <label class="field"><span>Name</span><input class="input" id="tname" value="${esc(__te.name)}" maxlength="60"></label>
+    <label class="field"><span>Bereich</span><input class="input" id="tcat" list="cats" value="${esc(__te.cat)}" maxlength="30">
+      <datalist id="cats">${categories().map(c => `<option value="${esc(c)}">`).join("")}</datalist></label>
+    <div class="field"><span>Punkte</span><div class="seg">${[1, 2, 3, 4, 5].map(n => `<button class="${+__te.pts === n ? "on" : ""}" data-a="tePts" data-v="${n}">${n}</button>`).join("")}</div></div>
+    <div class="field"><span>Tageslimit pro Person</span><div class="seg">${[0, 1, 2, 3].map(n => `<button class="${+__te.limit === n ? "on" : ""}" data-a="teLimit" data-v="${n}" style="min-width:64px">${n ? n + "×" : "keins"}</button>`).join("")}</div></div>
+    <button class="btn block" data-a="saveTask" style="margin-top:14px">Speichern</button>
+    ${id ? `<button class="btn danger block" data-a="delTask" style="margin-top:8px">Aufgabe löschen</button>` : ""}`);
+  window.__teDraw = () => {
+    const n = document.getElementById("tname"), c = document.getElementById("tcat");
+    if (n) __te.name = n.value; if (c) __te.cat = c.value; draw();
+  };
+  draw();
+}
+async function saveTask() {
+  const name = (document.getElementById("tname").value || "").trim();
+  const cat = (document.getElementById("tcat").value || "").trim() || "Allgemein";
+  if (!name) { toast("Bitte einen Namen eingeben", { error: true }); return; }
+  const t = { ...__te, name, cat, pts: +__te.pts || 1, limit: +__te.limit || 0 };
+  let list = tasks().slice();
+  if (t.id) list = list.map(x => x.id === t.id ? t : x);
+  else {
+    t.id = "t" + uid();
+    let idx = -1; list.forEach((x, i) => { if (x.cat === cat) idx = i; });
+    if (idx >= 0) list.splice(idx + 1, 0, t); else list.push(t);
+  }
+  try { await S.store.saveMeta({ tasks: list }); closeSheet(); toast("Aufgabe gespeichert"); }
+  catch (e) { warn(e); toast("Speichern fehlgeschlagen: " + e.message, { error: true }); }
+}
+async function delTask() {
+  const t = __te;
+  if (!(await confirmBox(`Aufgabe „${t.name}“ löschen? Bereits gesammelte Punkte bleiben erhalten.`, "Löschen", true))) return;
+  try { await S.store.saveMeta({ tasks: tasks().filter(x => x.id !== t.id) }); toast("Aufgabe gelöscht"); }
+  catch (e) { toast("Fehler: " + e.message, { error: true }); }
+}
+
+/* ---------- Aktionen ---------- */
+async function addEntry(id) {
+  if (!S.me) { pickMe(); return; }
+  const t = tasks().find(x => x.id === id); if (!t) return;
+  const lim = +t.limit || 0;
+  if (lim && todayCount(t.id) >= lim) { toast(`Tageslimit erreicht (${lim}× pro Tag)`, { error: true }); return; }
+  const now = new Date();
+  const e = { pid: S.me, tid: t.id, name: t.name, cat: t.cat, pts: +t.pts || 0, ts: now.getTime(), month: monthKey(now), day: dayKey(now) };
+  try {
+    const eid = S.store.addEntry(e);
+    haptic(); log("Eintrag", e);
+    toast(`+${t.pts}  ${t.name}`, { undo: () => S.store.deleteEntry(eid) });
+  } catch (err) { warn(err); toast("Speichern fehlgeschlagen: " + err.message, { error: true }); }
+}
+function pickMe() {
+  openSheet(`<h2>Wer nutzt dieses Gerät?</h2><p class="small muted">Einträge auf diesem Gerät werden diesem Profil gutgeschrieben.</p>
+    ${pickMeList()}<button class="link" data-a="editProfile">+ Neues Profil</button>`);
+}
+const ACTIONS = {
+  tab: el => { S.tab = el.dataset.v; LS.set("tab", S.tab); render(); window.scrollTo(0, 0); },
+  pickMe, setMe: el => { S.me = el.dataset.v; LS.set("me", S.me); closeSheet(); render(); },
+  addEntry: el => addEntry(el.dataset.v),
+  delEntry: async el => {
+    if (!(await confirmBox("Eintrag löschen?", "Löschen", true))) return;
+    try { await S.store.deleteEntry(el.dataset.v); toast("Gelöscht"); } catch (e) { toast("Fehler: " + e.message, { error: true }); }
+  },
+  toggleCat: el => { const c = el.dataset.v; S.openCats[c] = S.openCats[c] === false; LS.set("openCats", S.openCats); document.getElementById("tasklist").innerHTML = renderTaskList(); },
+  reveal: el => { LS.set("seen_" + el.dataset.v, true); S.justRevealed = el.dataset.v; haptic(); render(); },
+  openMonth: el => openMonth(el.dataset.v),
+  editProfile: el => editProfile(el.dataset.v), saveProfile, delProfile,
+  peEmoji: el => { __pe.emoji = el.dataset.v; __peDraw(); }, peColor: el => { __pe.color = el.dataset.v; __peDraw(); },
+  editTask: el => editTask(el.dataset.v), saveTask, delTask,
+  tePts: el => { __te.pts = +el.dataset.v; __teDraw(); }, teLimit: el => { __te.limit = +el.dataset.v; __teDraw(); },
+  resetTasks: async () => {
+    if (!(await confirmBox("Aufgabenliste auf den Standard zurücksetzen? Eigene Aufgaben gehen verloren (Punkte bleiben).", "Zurücksetzen", true))) return;
+    try { await S.store.saveMeta({ tasks: DEFAULT_TASKS }); toast("Standardliste wiederhergestellt"); } catch (e) { toast("Fehler: " + e.message, { error: true }); }
+  },
+  closeSheet, bgClose: (el, ev) => { if (ev.target === el) closeSheet(); },
+  copyInvite: () => copyText(inviteLink()),
+  shareInvite: async () => {
+    const link = inviteLink();
+    if (navigator.share) { try { await navigator.share({ title: "Haushaltsduell", text: "Unser Haushaltsduell – öffnen und als Lesezeichen speichern:", url: link }); return; } catch (e) { if (e.name === "AbortError") return; } }
+    copyText(link);
+  },
+  disconnect: async () => {
+    if (!(await confirmBox("Verbindung auf diesem Gerät trennen? Die Daten in der Cloud bleiben erhalten.", "Trennen", true))) return;
+    LS.del("conn"); if (location.hash) history.replaceState(null, "", location.href.split("#")[0]); location.reload();
+  },
+  retry: () => location.reload(),
+  setupDemo: () => { S.conn = { mode: "demo" }; LS.set("conn", S.conn); boot(); },
+  setupFb: () => {
+    const cfg = parseFirebaseConfig(document.getElementById("fbcfg").value);
+    if (!cfg) { toast("Konfiguration nicht erkannt – apiKey und projectId werden benötigt", { error: true }); return; }
+    let hid = (document.getElementById("hid").value || "").trim();
+    if (hid && hid.length < 16) { toast("Haushalt-ID muss mindestens 16 Zeichen haben", { error: true }); return; }
+    if (!hid) hid = randomId();
+    S.conn = { mode: "firebase", firebase: cfg, hid }; LS.set("conn", S.conn); boot();
+  },
+  joinLink: () => {
+    const v = (document.getElementById("joinLink").value || "").trim();
+    const m = v.match(/join=([A-Za-z0-9_-]+)/);
+    if (!m) { toast("Kein gültiger Einladungslink", { error: true }); return; }
+    try { const o = JSON.parse(b64d(m[1])); S.conn = { mode: "firebase", firebase: o.c, hid: o.h }; LS.set("conn", S.conn); boot(); }
+    catch (e) { toast("Link konnte nicht gelesen werden", { error: true }); }
+  }
+};
+function copyText(t) {
+  if (!t) return;
+  const fallback = () => {
+    try { const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("Link kopiert"); }
+    catch (e) { toast("Bitte Link manuell markieren und kopieren", { error: true }); }
+  };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(() => toast("Link kopiert"), fallback); else fallback();
+}
+
+document.addEventListener("click", ev => {
+  const el = ev.target.closest("[data-a]"); if (!el) return;
+  const fn = ACTIONS[el.dataset.a]; if (!fn) return;
+  if (el.dataset.a !== "bgClose") ev.preventDefault();
+  try { fn(el, ev); } catch (e) { warn("Aktion fehlgeschlagen", el.dataset.a, e); toast("Fehler: " + e.message, { error: true }); }
+});
+document.addEventListener("input", ev => {
+  if (ev.target.id === "search") { S.search = ev.target.value; const tl = document.getElementById("tasklist"); if (tl) tl.innerHTML = renderTaskList(); }
+});
+document.addEventListener("change", async ev => {
+  const k = ev.target.dataset && ev.target.dataset.in; if (!k) return;
+  let v = ev.target.value; if (k === "blindDays" || k === "tieThreshold") v = +v;
+  try { await S.store.saveMeta({ settings: { ...settings(), [k]: v } }); toast("Gespeichert"); }
+  catch (e) { toast("Speichern fehlgeschlagen: " + e.message, { error: true }); }
+});
+
+/* ---------- Start ---------- */
+let renderPending = false;
+function scheduleRender() {
+  if (renderPending) return; renderPending = true;
+  requestAnimationFrame(() => {
+    renderPending = false;
+    const a = document.activeElement;
+    // Nicht neu zeichnen, während jemand tippt (Suche/Einstellungen) – nur Liste aktualisieren
+    if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT") && a.closest("#app")) {
+      const tl = document.getElementById("tasklist"); if (tl && a.id === "search") tl.innerHTML = renderTaskList();
+      return;
+    }
+    render();
+  });
+}
+async function boot() {
+  S.conn = S.conn || getConn();
+  S.error = null;
+  if (!S.conn) { render(); return; }
+  S.store = S.conn.mode === "demo" ? new DemoStore() : new FirebaseStore(S.conn.firebase, S.conn.hid);
+  render();
+  try {
+    await S.store.start({
+      meta: m => { S.meta = m; S.error = null; scheduleRender(); },
+      entries: list => { S.entries = list; scheduleRender(); },
+      status: st => { if (S.status !== st) { S.status = st; scheduleRender(); } },
+      error: err => {
+        warn("Datenbankfehler", err);
+        S.error = err && err.code === "permission-denied"
+          ? "Keine Berechtigung – prüfe die Firestore-Regeln (siehe Anleitung)."
+          : (err && err.message) || String(err);
+        S.status = "error"; scheduleRender();
+      }
+    });
+  } catch (e) { warn("Start fehlgeschlagen", e); S.error = e.message; S.status = "error"; render(); }
+}
+setInterval(() => { if (S.ready || S.meta) scheduleRender(); }, 60000); // Blindphase/Monatswechsel aktualisieren
+window.addEventListener("hashchange", () => { if (readJoinFromHash()) location.reload(); });
+log("Version", VERSION, isApk ? "(Android-App)" : "(Browser)");
+boot();
+</script>
+</body>
+</html>
